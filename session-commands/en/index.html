@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>/add-dir, /context, /compact: the three commands that keep a session alive — Henzo Gomes</title><meta name="description" content="/add-dir, /context, /compact: how to keep a Claude Code session alive instead of starting from scratch."/><meta property="og:type" content="article"/><meta property="og:url" content="https://henzogomes-ciandt.github.io/posts/session-commands/en/"/><link rel="modulepreload" href="/posts/assets/entry.client-DeIlCPro.js"/><link rel="modulepreload" href="/posts/assets/jsx-runtime-CMum7Zzj.js"/><link rel="modulepreload" href="/posts/assets/errorBoundaries-BhQJCmS5.js"/><link rel="modulepreload" href="/posts/assets/root-MhZGs1vm.js"/><link rel="modulepreload" href="/posts/assets/locale-BxTFHqXq.js"/><link rel="modulepreload" href="/posts/assets/useTranslation-C95RXUmY.js"/><link rel="modulepreload" href="/posts/assets/post--nCf2z44.js"/><link rel="modulepreload" href="/posts/assets/posts-B9SGGtPq.js"/><script>(function(){try{var t=localStorage.getItem("stackedprs_theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script><link rel="stylesheet" href="/posts/assets/root-CVLjCfZm.css"/><link rel="stylesheet" href="/posts/assets/post-lxlbvSiy.css"/><link rel="stylesheet" href="/posts/assets/posts-C8DA1rMR.css"/></head><body><button class="tbtn" id="themeToggle" type="button" aria-label="Toggle light and dark theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><span>Dark</span></button><a class="lang" href="/posts/session-commands/" title="Ler esta página em português">PT</a><div class="wrap"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="/posts/en/">Posts</a><span aria-hidden="true">/</span><span class="current">/add-dir, /context, /compact: the three commands that keep a session alive</span></nav><div class="wrap"><header class="hero"><div><div class="eyebrow">Workflow · Claude Code</div><h1>/add-dir, /context, /compact: the three commands that keep a session alive</h1></div><div class="tldr"><div class="tag">TL;DR</div><p><span class="k">What they are</span><span>Three session commands that attack the same problem from different angles: file scope (<code>/add-dir</code>), visibility into what fills the context window (<code>/context</code>), and freeing space without losing the work (<code>/compact</code>).</span></p><p><span class="k">Why</span><span>Long sessions and work spread across more than one repository fill the context window and bump into the working directory. Without these three commands, the usual way out is opening a new session — and throwing away everything already investigated.</span></p><p><span class="k">The price</span><span>Each has its own catch: file access is not loaded context, a summary is not the literal history, and <code>/context</code> only helps if someone remembers to run it.</span></p></div></header><section class="cmd"><div class="col"><div class="eyebrow"><span class="num">01</span>/add-dir</div><h2>A session does not have to stay pinned to one directory.</h2><p class="standfirst">By default, Claude only reads and writes inside the directory where the session was opened. That is a sensible safety fence — but a lot of real work does not respect it. The cause of a frontend bug can live in the response the backend returns; a function signature can be defined in a package that lives in another repository.</p><p><code>/add-dir &lt;path&gt;</code> fixes that without leaving the session: you point at another directory&#x27;s path, and from then on Claude has file access to both — where you started and what you just added. You can add more than one, and it lasts for the life of the session; if the same pair of repositories keeps coming up, promote it to <code>permissions.additionalDirectories</code> in the project&#x27;s <code>settings.json</code>.</p></div><figure><div class="figbody"><div class="rooms"><div class="roomsession">Session opened in <b>frontend/</b></div><div class="room in"><span class="icon">▣</span><span class="name">frontend/</span><span class="tag">session directory</span></div><div class="room in"><span class="icon">▣</span><span class="name">backend-api/</span><span class="tag">added via /add-dir</span></div><div class="room out"><span class="icon">▢</span><span class="name">any other repo</span><span class="tag">out of scope</span></div></div></div><figcaption>The same conversation, the same investigation context — only the file scope grew.</figcaption></figure><div class="col"><p>Without the command, the most common alternative is a second terminal pointed at the other repository. It works, but it costs more than it looks: the new session does not know what the first one already figured out. <code>/add-dir</code> keeps everything on one track — same conversation, same reasoning, both sides of the problem at hand.</p><p class="note">A detail that tricks people: it is file access, not context. If the added repository has its own <code>CLAUDE.md</code> with conventions or skills, none of that loads on its own — worth making a habit of asking to read it before actually editing inside.</p></div></section><section class="cmd"><div class="col"><div class="eyebrow"><span class="num">02</span>/context</div><h2>Before deciding what to do with the context window, see what is in it.</h2><p class="standfirst">Every session has a context limit — and what fills it is not just the conversation. System prompt, tool schemas and connected MCP servers, files already read, the message history: all of it competes for the same space, and not always in the proportions you would guess.</p><p><code>/context</code> shows the picture: how much each category is using, in numbers. It is the command that turns &quot;I think the session is filling up&quot; into a concrete datapoint — sometimes the villain is a handful of MCP servers with large schemas, not the conversation itself.</p></div><figure><div class="figbody"><div class="ctxbar"><div class="seg sys">system</div><div class="seg tools">tools / MCP</div><div class="seg files">files read</div><div class="seg conv">conversation</div></div><div class="ctxlegend"><span><i class="sys"></i>system prompt</span><span><i class="tools"></i>connected tools and MCP</span><span><i class="files"></i>files already read</span><span><i class="conv"></i>conversation history</span></div></div><figcaption>Illustrative proportions — the point is that the real split is rarely obvious without running the command.</figcaption></figure><div class="col"><p>The value of <code>/context</code> is not acting on its own — it is informing the next decision. If the big slice is old conversation that no longer serves, it is time for <code>/compact</code>. If it is tools/MCP, maybe worth disconnecting something unused in this session. Without looking, the decision becomes a guess.</p></div></section><section class="cmd"><div class="col"><div class="eyebrow"><span class="num">03</span>/compact</div><h2>Freeing space should not mean losing what was already investigated.</h2><p class="standfirst">Long sessions pile up tool output, read files, discarded attempts — things that already did their job and do not need to sit there word by word, taking space. Without a way to clean that, when the session &quot;fills up&quot; the common path is opening a new one — and re-explaining everything from zero.</p><p><code>/compact</code> is the middle ground: it summarizes the conversation so far, freeing space while keeping continuity — decisions made, hypotheses discarded, where the work stopped. You stay in the same session, just with more room ahead.</p></div><div class="rule"><p class="big">A summary is not the literal history.</p><p><code>/compact</code> is summarization, not archival. What survives is the essence — the what and the why — not necessarily every textual detail, like an exact line number or the exact quote of a passage. If some detail is truly irreplaceable for what comes next, write it down (in a file, or explicitly in the conversation) before compacting — do not trust the summary to carry it on its own.</p></div></section><section class="col"><div><div class="eyebrow muted">What none of the three solves alone</div><h2>They buy space and reach. They do not replace judgment.</h2></div><div class="costs"><div class="cost"><span class="mark">01</span><h3><code>/context</code> is a snapshot, not an alarm</h3><p>It does not warn on its own when the window is filling up — someone has to remember to run the command.</p></div><div class="cost"><span class="mark">02</span><h3><code>/compact</code> is controlled loss, not free loss</h3><p>Every summary throws away detail. The right question is not &quot;when to compact&quot; but &quot;what do I need to write down before compacting&quot;.</p></div><div class="cost"><span class="mark">03</span><h3><code>/add-dir</code> is file scope, not imported conventions</h3><p>The added repository still has its own rules, and they only apply if someone goes and reads them.</p></div></div></section><p class="kicker">All three solve the same kind of friction: the temptation to abandon the session and start over because it got &quot;too big&quot; or &quot;in the wrong repository&quot;. In practice, you can almost always continue where you stopped — you just have to know the command exists.</p></div></div><script>((storageKey, restoreKey) => {
+		if (!window.history.state || !window.history.state.key) {
+			let key = Math.random().toString(32).slice(2);
+			window.history.replaceState({ key }, "");
+		}
+		try {
+			let storedY = JSON.parse(sessionStorage.getItem(storageKey) || "{}")[restoreKey || window.history.state.key];
+			if (typeof storedY === "number") window.scrollTo(0, storedY);
+		} catch (error) {
+			console.error(error);
+			sessionStorage.removeItem(storageKey);
+		}
+	})("react-router-scroll-positions", null)</script><script>window.__reactRouterContext = {"basename":"/posts/","future":{"unstable_enableNodeReadableStream":false,"unstable_optimizeDeps":false},"routeDiscovery":{"mode":"lazy","manifestPath":"/__manifest"},"ssr":true,"isSpaMode":false};window.__reactRouterContext.stream = new ReadableStream({start(controller){window.__reactRouterContext.streamController = controller;}}).pipeThrough(new TextEncoderStream());</script><script type="module" async="">;
+import * as route0 from "/posts/assets/root-MhZGs1vm.js";
+import * as route1 from "/posts/assets/post--nCf2z44.js";
+  window.__reactRouterManifest = {
+  "entry": {
+    "module": "/posts/assets/entry.client-DeIlCPro.js",
+    "imports": [
+      "/posts/assets/jsx-runtime-CMum7Zzj.js",
+      "/posts/assets/errorBoundaries-BhQJCmS5.js"
+    ],
+    "css": []
+  },
+  "routes": {
+    "root": {
+      "id": "root",
+      "path": "",
+      "hasAction": false,
+      "hasLoader": false,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/root-MhZGs1vm.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/errorBoundaries-BhQJCmS5.js",
+        "/posts/assets/locale-BxTFHqXq.js",
+        "/posts/assets/useTranslation-C95RXUmY.js"
+      ],
+      "css": [
+        "/posts/assets/root-CVLjCfZm.css"
+      ]
+    },
+    "routes/post-en": {
+      "id": "routes/post-en",
+      "parentId": "root",
+      "path": ":slug/en",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    },
+    "routes/post-pt": {
+      "id": "routes/post-pt",
+      "parentId": "root",
+      "path": ":slug",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    }
+  },
+  "url": "/posts/assets/manifest-7a0cd6d4.js",
+  "version": "7a0cd6d4"
+};
+  window.__reactRouterRouteModules = {"root":route0,"routes/post-en":route1};
+
+import("/posts/assets/entry.client-DeIlCPro.js");</script><!--$--><script>window.__reactRouterContext.streamController.enqueue("[{\"_1\":2,\"_3\":-5,\"_4\":-5},\"loaderData\",{\"_5\":6},\"actionData\",\"errors\",\"routes/post-en\",{\"_7\":8,\"_9\":10},\"slug\",\"session-commands\",\"lang\",\"en\"]\n");</script><!--$--><script>window.__reactRouterContext.streamController.close();</script><!--/$--><!--/$--></body></html>

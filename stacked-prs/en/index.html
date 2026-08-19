@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Stacked PRs: the open PR is the base for the next one — Henzo Gomes</title><meta name="description" content="Why open the next PR on top of the one still in review, instead of waiting for the merge. The concept, the git in practice, and the costs."/><meta property="og:type" content="article"/><meta property="og:url" content="https://henzogomes-ciandt.github.io/posts/stacked-prs/en/"/><link rel="modulepreload" href="/posts/assets/entry.client-DeIlCPro.js"/><link rel="modulepreload" href="/posts/assets/jsx-runtime-CMum7Zzj.js"/><link rel="modulepreload" href="/posts/assets/errorBoundaries-BhQJCmS5.js"/><link rel="modulepreload" href="/posts/assets/root-MhZGs1vm.js"/><link rel="modulepreload" href="/posts/assets/locale-BxTFHqXq.js"/><link rel="modulepreload" href="/posts/assets/useTranslation-C95RXUmY.js"/><link rel="modulepreload" href="/posts/assets/post--nCf2z44.js"/><link rel="modulepreload" href="/posts/assets/posts-B9SGGtPq.js"/><script>(function(){try{var t=localStorage.getItem("stackedprs_theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script><link rel="stylesheet" href="/posts/assets/root-CVLjCfZm.css"/><link rel="stylesheet" href="/posts/assets/post-lxlbvSiy.css"/><link rel="stylesheet" href="/posts/assets/posts-C8DA1rMR.css"/></head><body><button class="tbtn" id="themeToggle" type="button" aria-label="Toggle light and dark theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><span>Dark</span></button><a class="lang" href="/posts/stacked-prs/" title="Ler esta página em português">PT</a><div class="wrap"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="/posts/en/">Posts</a><span aria-hidden="true">/</span><span class="current">Stacked PRs: the open PR is the base for the next one</span></nav><div class="wrap"><header class="hero"><div><div class="eyebrow">Workflow · git</div><h1>Stacked PRs: the open PR is the base for the next one</h1></div><div class="tldr"><div class="tag">TL;DR</div><p><span class="k">What it is</span><span>The next PR branches off the previous PR&#x27;s branch, still open, and points at it instead of <code>main</code>. Each one shows only its own diff.</span></p><p><span class="k">Why</span><span>You stop waiting for a merge to keep going, and the reviewer gets pieces with a single subject inside.</span></p><p><span class="k">The price</span><span>Merge bottom-up, never squash, and every PR green on its own.</span></p></div></header><section><div class="col"><div class="eyebrow">The concept</div><h2>Your PR&#x27;s base does not have to be <code>main</code>.</h2><p class="standfirst">A stacked PR is a PR whose base is the branch of another PR that is still open. It is literally just that. You do not wait for the first one to merge; you treat its branch as if it were already the base.</p><p>The second PR shows only its own diff. What the first one already contained does not appear again, because Git compares against the base you chose, not against <code>main</code>.</p><p>From there it becomes a chain: A comes off <code>main</code>, B off A, C off B. Each link is reviewable on its own, and merges happen bottom-up, in the order approvals arrive.</p><p class="note">&quot;Stacked PRs&quot;. I keep it in English, it is how everyone calls it.</p></div><figure><div class="figbody"><div class="stack"><div class="node base"><span class="br">main</span><span class="tgt">base</span></div><div class="node"><span class="br">feat/a</span><span class="tgt">→ main</span></div><div class="node"><span class="br">feat/b</span><span class="tgt">→ feat/a</span></div><div class="node"><span class="br">feat/c</span><span class="tgt">→ feat/b</span></div></div><div class="mergeorder">↓ merge bottom-up, no-fast-forward</div></div><figcaption>Each PR contains only its own diff. When one merges, the child is retargeted to the next base.</figcaption></figure></section><section><div class="col"><div class="eyebrow">How it works in practice</div><h2>There is no new tool. Same git as always.</h2><p>The only thing that changes is where the branch comes from and where the PR points.</p></div><div class="col"><pre class="code"><span class="c"># the first one, the way you already do it</span>
+git switch -c <b>feat/a</b> main
+<span class="c"># work, commit, push</span>
+<span class="c"># open the PR:  feat/a  →  main</span>
+
+<span class="c"># the second one, without waiting for the first merge</span>
+git switch -c <b>feat/b</b> <b>feat/a</b>          <span class="c"># the base is the open PR's branch</span>
+<span class="c"># work, commit, push</span>
+<span class="c"># open the PR:  feat/b  →  feat/a</span>    <span class="c"># the target too</span></pre></div><div class="col"><p>What the reviewer sees in <code>feat/b</code>&#x27;s PR is only what you did in B. That is not cosmetic: without the right target, the second PR would show A + B together and there would be no gain.</p><p>When A is approved and merged, you do two things with B — point the PR at <code>main</code> and bring <code>main</code> onto the branch.</p></div><div class="col"><pre class="code">git switch feat/b
+git rebase --onto main feat/a feat/b
+git push --force-with-lease</pre></div><div class="col"><p>On GitHub the child retarget is automatic when the parent merges. On ADO it is not: it refuses to delete a branch that is still the target of another PR, so the delete that would trigger the retarget never happens and you switch the target by hand. I found that out the hard way, with a large chain already built.</p></div></section><section><div class="col"><div class="eyebrow">Why this beats waiting</div><h2>The point is not speed, it is decoupling.</h2><p>Review is async and will stay that way. The reviewer has their own day, and sometimes their day is one meeting after another. What you get to choose is whether your work stays pinned to that calendar.</p><p>With the stack, the open PR stops being a stop and becomes a starting point. You move to the next part; A&#x27;s review happens while B is being written; A&#x27;s comments arrive whenever they arrive, and you fix them on A&#x27;s branch and cascade forward.</p><p>There is a second effect I came to like as much as the first. Since opening one more PR costs nothing, you stop cutting work by size and start cutting it by <strong>type of review</strong>. One PR with just the component extraction, another with just the behavior change. The first the reviewer approves in five minutes and knows it is safe. The second they read slowly, which is what it deserves. Merge the two into one PR and they read both in the same mode, usually the fast one.</p></div><figure><div class="figbody"><div class="diffcmp"><div class="side"><div class="barlabel"><span>One PR, growing while the merge never comes</span><b>3 subjects, 900 lines</b></div><div class="monobar">all together — read diagonally</div></div><div class="side"><div class="barlabel"><span>The same work, cut by type of review</span><b>3 PRs</b></div><div class="split"><div class="slice">Component extraction<span>mechanical</span></div><div class="slice">Behavior change<span>logic</span></div><div class="slice">Config / policy<span>decision</span></div></div></div></div></div><figcaption>Same work. On the left the reviewer reads it all in the same mode, and it is usually the fast one.</figcaption></figure><figure><div class="figbody"><div class="tl"><div class="tlgroup"><div class="tlhead"><span class="who">Waiting for the merge</span><span class="cost">3 parts · <b>14 time units</b></span></div><div class="row"><span class="rowname">part 1</span><span class="seg work" style="grid-column:2 / span 2">dev</span><span class="seg review" style="grid-column:4 / span 3">review</span><span class="seg merge" style="grid-column:7 / span 1">M</span></div><div class="row"><span class="rowname">part 2</span><span class="seg block" style="grid-column:2 / span 6">waiting</span><span class="seg work" style="grid-column:8 / span 1">dev</span><span class="seg review" style="grid-column:9 / span 3">review</span><span class="seg merge" style="grid-column:12 / span 1">M</span></div><div class="row"><span class="rowname">part 3</span><span class="seg block" style="grid-column:2 / span 11">waiting</span><span class="seg work" style="grid-column:13 / span 1">dev</span><span class="seg review" style="grid-column:14 / span 2">…</span></div><div class="axis"><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span></div></div><div class="tlgroup"><div class="tlhead"><span class="who">Stacked</span><span class="cost">the same 3 parts · <b>7 units</b></span></div><div class="row"><span class="rowname">part 1</span><span class="seg work" style="grid-column:2 / span 2">dev</span><span class="seg review" style="grid-column:4 / span 3">review</span></div><div class="row"><span class="rowname">part 2</span><span class="seg work" style="grid-column:4 / span 2">dev</span><span class="seg review" style="grid-column:6 / span 3">review</span></div><div class="row"><span class="rowname">part 3</span><span class="seg work" style="grid-column:6 / span 2">dev</span><span class="seg review" style="grid-column:8 / span 3">review</span></div><div class="row"><span class="rowname">merge</span><span class="seg merge" style="grid-column:11 / span 3">bottom-up cascade</span></div><div class="axis"><span></span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span></div></div><div class="legend"><span><i class="work"></i>you writing</span><span><i class="review"></i>review</span><span><i class="block"></i>idle waiting for the merge</span></div></div></div><figcaption>The work is the same in both cases. What changes is <b>when the next part can start</b>.</figcaption></figure></section><section class="col"><div><div class="eyebrow">The rule you cannot loosen</div><h2>Every PR in the stack needs to be green on its own.</h2></div><div class="rule"><p class="big">Green on its own, not green on top of the stack.</p><p>If you stack on top of a branch that was never proven green by itself, you lose what stacking did best: when a test breaks three PRs up, you no longer know which link holds the problem. It happened to me in the middle of a chain, and finding out cost more than running everything beforehand.</p></div></section><section class="col"><div><div class="eyebrow muted">What you pay for it</div><h2>There is a price. It is low, but it is there.</h2></div><div class="costs"><div class="cost"><span class="mark">01</span><h3>A stale chain depreciates</h3><p>The <code>main</code> moves. The longer the stack stays open, the more rebasing you do.</p></div><div class="cost"><span class="mark">02</span><h3>A late commit below conflicts with everything above</h3><p>If a review tweak needs to land in a lower link, cascade it forward right away. Leaving it for merge day multiplies the conflict across the rest of the stack.</p></div><div class="cost"><span class="mark">03</span><h3>The merge order is not negotiable</h3><p>Bottom-up, always.</p></div><div class="cost"><span class="mark">04</span><h3>Never squash a stack</h3><p>Squashing rewrites the parent&#x27;s commits into a new SHA and orphans every child. <code>no-fast-forward</code> and done.</p></div><div class="cost"><span class="mark">05</span><h3>A too-deep chain is a sign of something else</h3><p>If you are on the eighth link, the problem is probably not the technique — it is that nobody is reviewing.</p></div></div></section><p class="kicker">Stacked PRs do not make review faster. They take review off the critical path, which is different. If you have ever stared at an open PR with no idea what to do with your life until it merges, try it next time: branch off the open PR and keep going.</p></div></div><script>((storageKey, restoreKey) => {
+		if (!window.history.state || !window.history.state.key) {
+			let key = Math.random().toString(32).slice(2);
+			window.history.replaceState({ key }, "");
+		}
+		try {
+			let storedY = JSON.parse(sessionStorage.getItem(storageKey) || "{}")[restoreKey || window.history.state.key];
+			if (typeof storedY === "number") window.scrollTo(0, storedY);
+		} catch (error) {
+			console.error(error);
+			sessionStorage.removeItem(storageKey);
+		}
+	})("react-router-scroll-positions", null)</script><script>window.__reactRouterContext = {"basename":"/posts/","future":{"unstable_enableNodeReadableStream":false,"unstable_optimizeDeps":false},"routeDiscovery":{"mode":"lazy","manifestPath":"/__manifest"},"ssr":true,"isSpaMode":false};window.__reactRouterContext.stream = new ReadableStream({start(controller){window.__reactRouterContext.streamController = controller;}}).pipeThrough(new TextEncoderStream());</script><script type="module" async="">;
+import * as route0 from "/posts/assets/root-MhZGs1vm.js";
+import * as route1 from "/posts/assets/post--nCf2z44.js";
+  window.__reactRouterManifest = {
+  "entry": {
+    "module": "/posts/assets/entry.client-DeIlCPro.js",
+    "imports": [
+      "/posts/assets/jsx-runtime-CMum7Zzj.js",
+      "/posts/assets/errorBoundaries-BhQJCmS5.js"
+    ],
+    "css": []
+  },
+  "routes": {
+    "root": {
+      "id": "root",
+      "path": "",
+      "hasAction": false,
+      "hasLoader": false,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/root-MhZGs1vm.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/errorBoundaries-BhQJCmS5.js",
+        "/posts/assets/locale-BxTFHqXq.js",
+        "/posts/assets/useTranslation-C95RXUmY.js"
+      ],
+      "css": [
+        "/posts/assets/root-CVLjCfZm.css"
+      ]
+    },
+    "routes/post-en": {
+      "id": "routes/post-en",
+      "parentId": "root",
+      "path": ":slug/en",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    },
+    "routes/post-pt": {
+      "id": "routes/post-pt",
+      "parentId": "root",
+      "path": ":slug",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    }
+  },
+  "url": "/posts/assets/manifest-7a0cd6d4.js",
+  "version": "7a0cd6d4"
+};
+  window.__reactRouterRouteModules = {"root":route0,"routes/post-en":route1};
+
+import("/posts/assets/entry.client-DeIlCPro.js");</script><!--$--><script>window.__reactRouterContext.streamController.enqueue("[{\"_1\":2,\"_3\":-5,\"_4\":-5},\"loaderData\",{\"_5\":6},\"actionData\",\"errors\",\"routes/post-en\",{\"_7\":8,\"_9\":10},\"slug\",\"stacked-prs\",\"lang\",\"en\"]\n");</script><!--$--><script>window.__reactRouterContext.streamController.close();</script><!--/$--><!--/$--></body></html>

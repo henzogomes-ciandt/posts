@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Investigate once, dispatch many — Henzo Gomes</title><meta name="description" content="Conducting an entire epic with agents, and what the first real run taught me."/><meta property="og:type" content="article"/><meta property="og:url" content="https://henzogomes-ciandt.github.io/posts/investigar-uma-vez/en/"/><link rel="modulepreload" href="/posts/assets/entry.client-DeIlCPro.js"/><link rel="modulepreload" href="/posts/assets/jsx-runtime-CMum7Zzj.js"/><link rel="modulepreload" href="/posts/assets/errorBoundaries-BhQJCmS5.js"/><link rel="modulepreload" href="/posts/assets/root-MhZGs1vm.js"/><link rel="modulepreload" href="/posts/assets/locale-BxTFHqXq.js"/><link rel="modulepreload" href="/posts/assets/useTranslation-C95RXUmY.js"/><link rel="modulepreload" href="/posts/assets/post--nCf2z44.js"/><link rel="modulepreload" href="/posts/assets/posts-B9SGGtPq.js"/><script>(function(){try{var t=localStorage.getItem("stackedprs_theme");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}})();</script><link rel="stylesheet" href="/posts/assets/root-CVLjCfZm.css"/><link rel="stylesheet" href="/posts/assets/post-lxlbvSiy.css"/><link rel="stylesheet" href="/posts/assets/posts-C8DA1rMR.css"/></head><body><button class="tbtn" id="themeToggle" type="button" aria-label="Toggle light and dark theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path></svg><span>Dark</span></button><a class="lang" href="/posts/investigar-uma-vez/" title="Ler esta página em português">PT</a><div class="wrap"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="/posts/en/">Posts</a><span aria-hidden="true">/</span><span class="current">Investigate once, dispatch many</span></nav><div class="wrap"><header class="hero"><div><div class="eyebrow">Orchestration · agents</div><h1>Investigate once, dispatch many</h1></div><p class="standfirst">Conducting an entire epic with agents, and what the first real run taught me.</p><div class="tldr"><div class="tag">TL;DR</div><p><span class="k">What it is</span><span>Instead of refining story by story, you investigate once at the scope of the whole epic and inject that understanding into every story. A conductor that dispatches the skills you already have, without reimplementing any of them.</span></p><p><span class="k">Why</span><span>Isolated refinement makes the same ground get reinvestigated N times, and each pass reaches a slightly different conclusion.</span></p><p><span class="k">What I did not expect</span><span>The pilot&#x27;s real deliverable was not the epic. It was the list of defects in the tool itself.</span></p></div></header><section><div class="col"><div class="eyebrow">The concept</div><h2>An epic is not a bunch of independent stories.</h2><p>They share the same ground: the same repos, the same schema, the same cross-cutting decisions. When you refine them one at a time, each refinement reinvestigates that ground from zero — and reaches a conclusion slightly different from the last. Then you discover on the third story that the second assumed something else.</p><p>The conductor&#x27;s idea is to move the investigation up a level. One grounding pass at the epic&#x27;s scope, cross-cutting decisions locked there, and only then is each story specified <strong>already seeded</strong> with that. Nothing is reinvestigated. The single-item skills stay the same, with the same gates — the conductor just calls them in the right order, with the right context.</p></div><figure><div class="figbody"><div class="halves"><div class="phase0"><span class="n">Phase 0 · orient</span><span class="t">Read the epic tree, detect where in the cycle it is, propose the action — and wait for confirmation.</span></div><div class="twocol"><div class="half read"><div class="hd"><span>Grounding half</span><b>does not write</b></div><div class="step"><span class="l">A</span><span><b>Investigate once.</b> Read the wiki, run exploration agents in parallel (one per repo), reconcile doc against code, lock decisions and open questions, write the epic plan.</span></div><div class="autonomy">runs on its own · for understanding, estimating, demos or handovers</div></div><div class="half write"><div class="hd"><span>Orchestration half</span><b>writes to the board</b></div><div class="step"><span class="l">B</span><span><b>Specify per story</b>, seeded with A. Nothing is reinvestigated.</span></div><div class="step"><span class="l">C</span><span><b>Break down once</b>, across all stories.</span></div><div class="step"><span class="l">D</span><span><b>Sequence</b> — waves come out of predecessor links.</span></div><div class="step"><span class="l">W</span><span><b>Walk the waves</b>, one PR per task.</span></div></div></div><div class="gates"><span class="gate">gate · phase 0</span><span class="gate">gate · before specs</span><span class="gate">gate · confirm hours</span><span class="gate">gate · wave boundary</span><span class="gate">gate · batch review</span></div></div></div><figcaption>The two halves separate. You can run only the top one — it touches no cards.</figcaption></figure></section><section><div class="col"><div class="eyebrow">The part that changed my mind</div><h2>Code beats the document. Literally, not as a slogan.</h2><p>The epic&#x27;s refinement wiki I used as a guinea pig was good. Well written, detailed, and <strong>it described a state of the code that no longer existed.</strong></p><p>Grounding runs exploration agents in parallel, one per repository, and every claim in the wiki has to be confirmed against the development branch, with <code>file:line</code>.</p></div><figure><div class="figbody"><div class="vs"><div class="vhead"><span>The wiki said</span><span>The code showed</span><span>Outcome</span></div><div class="vrow"><span class="doc">The edit and audit flow is new work, has to be built.</span><span class="real">It already existed — hidden behind a badly named endpoint.</span><span class="out">new → extend</span></div><div class="vrow"><span class="doc">Needs schema and data work across the whole stack.</span><span class="real">The schema already delivered every needed column.</span><span class="out">zero data work</span></div><div class="vrow"><span class="doc">Two orphan tasks on the board, probably stubs.</span><span class="real">They were a colleague&#x27;s tasks, already refined and estimated.</span><span class="out">reconcile, not recreate</span></div></div></div><figcaption>Estimating on top of the wiki would have oversized the whole epic. And none of these three discoveries required cleverness — <b>they required going and looking</b>.</figcaption></figure><div class="col"><p>It has a sibling on the frontend: <strong>the screen is the spec.</strong> Layout, states and copy do not survive a written description, so grounding looks at a real screenshot of the target screen — usually already attached to the story itself. A design tool gives exact measurements to implement pixel-faithfully, but for <em>understanding and estimating</em> the screenshot wins: no access friction, the designer&#x27;s annotations already on it, and showing the chosen state instead of a file full of drafts.</p><p>And the open questions: before pinging the PO, try answering them yourself. In my run, of the ones I was about to escalate, one fell straight out of the product rules already written and another fell out of the code — it was a different test framework than the task description claimed. The answer is usually already written somewhere.</p></div></section><section><div class="col"><div class="eyebrow">Sequencing</div><h2>The waves are not stored anywhere.</h2><p>Sequence is not state. Each run the conductor recomputes: the current wave is every uncompleted task whose predecessors are ready. That makes the thing <strong>resumable</strong> — you can stop halfway, the board is the source of truth, and on return it recomputes.</p><p>The detail that makes it work: <em>predecessor ready</em> means <strong>merged or with an open PR to stack on</strong>. If you require a merge, every wave waits for a human and the parallelism evaporates. This is where <a href="https://henzogomes-ciandt.github.io/posts/stacked-prs/">stacked PRs</a> stop being a preference and become a requirement.</p></div><figure><div class="figbody"><div class="waves"><div class="wave"><div class="wh">Wave 1<!-- --> <span>FE ∥ BE · parallel</span></div><div class="chip fe"><span class="tag">FE</span><span>Route, shell and form</span></div><div class="chip be"><span class="tag">BE</span><span>Edit action</span></div><div class="chip be"><span class="tag">BE</span><span>Shared status write</span></div><div class="chip be"><span class="tag">BE</span><span>Document resolver</span></div><div class="chip be"><span class="tag">BE</span><span>Endpoint that serves the PDF</span></div><div class="wnote">different repos → no race</div></div><div class="wave"><div class="wh">Wave 2<!-- --> <span>FE · serial stack</span></div><div class="chip fe"><span class="tag">FE</span><span>PDF viewer with highlighting</span></div><div class="chip fe"><span class="tag">FE</span><span>Status control</span></div><div class="chip fe"><span class="tag">FE</span><span>Identification card</span></div><div class="wnote">one repo only → stacked PRs</div></div><div class="wave"><div class="wh">Wave 3<!-- --> <span>FE · integration</span></div><div class="chip fe"><span class="tag">FE</span><span>Full document view</span></div><div class="chip fe"><span class="tag">FE</span><span>Wire edit and status to the backend</span></div><div class="chip fe"><span class="tag">FE</span><span>Wire viewer to resolver</span></div><div class="wnote">wiring tasks land here on their own</div></div></div></div><figcaption>Concurrency is the conductor&#x27;s call: wave 1 ran frontend and backend in parallel because they are different repos; waves 2 and 3 ran as a serial stack in one repo — <b>two branches touching the same git index at once is a guaranteed race</b>.</figcaption></figure></section><section class="col"><div><div class="eyebrow">Autonomy</div><h2>Gates in front, not in the middle.</h2></div><p>This is not autopilot, and the difference is in <em>where</em> the gates sit. They are front-loaded: confirm what will be done, approve the plan, confirm the hours, and review in batch once all PRs are open. Between plan approval and &quot;all PRs open&quot;, it runs on its own — and only interrupts on a real blocker.</p><p>A gate between every step tires people out and turns into a rubber stamp: you approve without reading because you have approved seventeen times today. A gate in the right place, you read.</p><div class="rule"><p class="big">Autonomy goes up to the open PR. Who decides what merges is a person.</p><p>In my pilot this was tested the right way: the human review of the frontend stack came back approved, but with two real blockers the agent had let through. The best one — two <code>eslint-disable</code> in one PR, violating the squad&#x27;s zero-suppression rule. &quot;Lint passed&quot; is not &quot;no suppression&quot;: suppression is <em>how</em> you make lint pass.</p></div></section><section class="col"><div><div class="eyebrow">Grounding in delivery</div><h2>What only shows up when you actually run it.</h2></div><p>One thing I did not expect: driving delivery to a working visual demo found what no spec read would have found.</p><p>An identity bug that only failed on the real write, and failed on both possible sides — the provisional value violated the foreign key, and the only real principal was exactly what the validation rejected. And a worker crash that was not code: it was a directory that had never been shared with the VM.</p><p>None of that was in any story or wiki page. It appeared because someone cloned the repos, brought the stack up and ran the thing. <strong>The spec tells you the plan; grounding tells you the state.</strong></p></section><section class="col"><div><div class="eyebrow muted">The pilot</div><h2>The real deliverable was not the epic.</h2></div><p>Running this for the first time on a real epic exposed <strong>eight concrete failures</strong> in the conductor itself and in the skills it dispatches:</p><div class="costs"><div class="cost"><span class="mark">01</span><h3>Never assigned the stories</h3><p>Did not assign the in-scope stories to whoever was touching them, nor move the epic to In Progress.</p></div><div class="cost"><span class="mark">02</span><h3>Reported child tasks halfway</h3><p>Showed they existed, but not who owned them, whether they were estimated, or their refinement state.</p></div><div class="cost"><span class="mark">03</span><h3>Asked for design that was already attached</h3><p>The stories already carried annotated screenshots of the prototype. Look at the attachments first.</p></div><div class="cost"><span class="mark">04</span><h3>Could not upload images to the wiki</h3><p>And the existing workaround orphaned all eight images silently, which is worse than failing.</p></div></div><p>Six of the eight were fixed <strong>the same day</strong>, in three themed PRs. The tool improved before the epic finished, and that ended up being worth more than the epic.</p><p>If you are going to try orchestration like this, it is what I recommend expecting from the first run: it is not about delivering faster, it is about finding out where your process lies to you.</p></section><section class="col"><div><div class="eyebrow">How to reuse without committing</div><h2>The two halves separate, and the first one is free.</h2></div><p><strong>Just the grounding</strong>, writing nothing anywhere: understand an epic, estimate, build a handover, prepare a demo. Run the method, drop the result into a local doc, and no card is touched. Cheap, no board risk, and it still fixes the wiki. The pocket rule is to trust the wiki&#x27;s <em>intent</em> and distrust its <em>implementation claims</em>.</p><p><strong>The orchestration half</strong> only after confirming the board is not ahead of the wiki — if the stories are already refined and already have subtasks, you recreate work that exists.</p></section><p class="kicker">If you take a single phrase: investigating once is the win. Investigate at the epic&#x27;s scope, specify each story seeded with it, and let the code — not the document — tell you what actually exists.</p></div></div><script>((storageKey, restoreKey) => {
+		if (!window.history.state || !window.history.state.key) {
+			let key = Math.random().toString(32).slice(2);
+			window.history.replaceState({ key }, "");
+		}
+		try {
+			let storedY = JSON.parse(sessionStorage.getItem(storageKey) || "{}")[restoreKey || window.history.state.key];
+			if (typeof storedY === "number") window.scrollTo(0, storedY);
+		} catch (error) {
+			console.error(error);
+			sessionStorage.removeItem(storageKey);
+		}
+	})("react-router-scroll-positions", null)</script><script>window.__reactRouterContext = {"basename":"/posts/","future":{"unstable_enableNodeReadableStream":false,"unstable_optimizeDeps":false},"routeDiscovery":{"mode":"lazy","manifestPath":"/__manifest"},"ssr":true,"isSpaMode":false};window.__reactRouterContext.stream = new ReadableStream({start(controller){window.__reactRouterContext.streamController = controller;}}).pipeThrough(new TextEncoderStream());</script><script type="module" async="">;
+import * as route0 from "/posts/assets/root-MhZGs1vm.js";
+import * as route1 from "/posts/assets/post--nCf2z44.js";
+  window.__reactRouterManifest = {
+  "entry": {
+    "module": "/posts/assets/entry.client-DeIlCPro.js",
+    "imports": [
+      "/posts/assets/jsx-runtime-CMum7Zzj.js",
+      "/posts/assets/errorBoundaries-BhQJCmS5.js"
+    ],
+    "css": []
+  },
+  "routes": {
+    "root": {
+      "id": "root",
+      "path": "",
+      "hasAction": false,
+      "hasLoader": false,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/root-MhZGs1vm.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/errorBoundaries-BhQJCmS5.js",
+        "/posts/assets/locale-BxTFHqXq.js",
+        "/posts/assets/useTranslation-C95RXUmY.js"
+      ],
+      "css": [
+        "/posts/assets/root-CVLjCfZm.css"
+      ]
+    },
+    "routes/post-en": {
+      "id": "routes/post-en",
+      "parentId": "root",
+      "path": ":slug/en",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    },
+    "routes/post-pt": {
+      "id": "routes/post-pt",
+      "parentId": "root",
+      "path": ":slug",
+      "hasAction": false,
+      "hasLoader": true,
+      "hasClientAction": false,
+      "hasClientLoader": false,
+      "hasClientMiddleware": false,
+      "hasDefaultExport": true,
+      "hasErrorBoundary": true,
+      "module": "/posts/assets/post--nCf2z44.js",
+      "imports": [
+        "/posts/assets/jsx-runtime-CMum7Zzj.js",
+        "/posts/assets/posts-B9SGGtPq.js",
+        "/posts/assets/locale-BxTFHqXq.js"
+      ],
+      "css": [
+        "/posts/assets/post-lxlbvSiy.css",
+        "/posts/assets/posts-C8DA1rMR.css"
+      ]
+    }
+  },
+  "url": "/posts/assets/manifest-7a0cd6d4.js",
+  "version": "7a0cd6d4"
+};
+  window.__reactRouterRouteModules = {"root":route0,"routes/post-en":route1};
+
+import("/posts/assets/entry.client-DeIlCPro.js");</script><!--$--><script>window.__reactRouterContext.streamController.enqueue("[{\"_1\":2,\"_3\":-5,\"_4\":-5},\"loaderData\",{\"_5\":6},\"actionData\",\"errors\",\"routes/post-en\",{\"_7\":8,\"_9\":10},\"slug\",\"investigar-uma-vez\",\"lang\",\"en\"]\n");</script><!--$--><script>window.__reactRouterContext.streamController.close();</script><!--/$--><!--/$--></body></html>
